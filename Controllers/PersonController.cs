@@ -1,77 +1,56 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
+using ph.DTOs;
+using ph.Service;
 
 namespace ph.Controllers;
-
+[ApiController]
+[Route("api/[controller]")]
 public class PersonController: ControllerBase
 
 {
-    
-    [HttpPut]
-    [Route("/person/{id}")]
-    public Person UpdatePerson([FromRoute] int id, [FromBody] Person person)
-    {
-        var existigPerson = FakeDB.db.First(p => p.Id == id);
-        existigPerson.Name = person.Name;
-        return existigPerson;
-    }
-    
-    [HttpGet]
-    [Route ("api/person")]
-    public List<Person> GetPersons()
-    {
-        return FakeDB.db.ToList();
-    }
+    private readonly IPersonService _service;
 
-   
-        
-
-
-    [HttpPost]
-    [Route("/person")]
-    public ActionResult GetPerson(Person person)
+    public PersonController(IPersonService service)
     {
-        FakeDB.db.Add(person);
-        return Ok( FakeDB.db);
-    }
-
-    public Person DeletePerson([FromRoute] int id)
-    {
-        var person = FakeDB.db.First(p => p.Id == id);
-        FakeDB.db.Remove(person);
-        return person;
+        Console.WriteLine("PersonController");// конструктор контролера, отримує сервіс із DI
+        _service = service;
         
     }
-}
-public static class FakeDB
-{
-    public static List<Person> db = new List<Person>();
-}
-
-
-
-
-public class Person
-{
-   public string Name{get;set;}
-   public int Age{get;set;}
-   
-   public int Id{get;set;}
-
-   public Person()
-   {
+    
+    [HttpPost(nameof(CreatePerson))]// POST-запит, шлях береться з назви методу ("CreatePerson")
+    
+    public Person CreatePerson([FromBody] CreateOrUpdatePersonRequestDto dto)
+    {
        
-   }
+        return _service.CreatePerson(dto);
+    }
 
-   public Person(string name, int age,int id)
-   { 
-       Id = id;
-      Name=name;
-      Age=age;
-   }
-   
-   
-   
-   
-   
-   
+    
+    [HttpPut (nameof(UpdatePerson))]
+ 
+    public Person UpdatePerson(
+        [FromQuery] string id,
+        [FromBody] CreateOrUpdatePersonRequestDto dto
+        )
+    {
+      return _service.UpdatePerson(id, dto);
+    }
+    
+    [HttpDelete (nameof(DeletePerson))]
+    public Person DeletePerson(string id)
+    {
+       return _service.DeletePerson(id);
+        
+    }
+
+ 
 }
+
+
+
+
+
+   
+   
+   
